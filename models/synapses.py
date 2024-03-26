@@ -31,7 +31,9 @@ class FullyConnectedSynapse(Behavior):
         mean = self.j0 / self.N
         variance = self.sigma / np.sqrt(self.N)
         sg.W = sg.matrix(mode=f"normal({mean},{variance})")
-
+        # Make the diagonal zero
+        if sg.src == sg.dst:
+            sg.W.fill_diagonal_(0)
         sg.I = sg.dst.vector()
 
     def forward(self, sg):
@@ -57,6 +59,10 @@ class RandomConnectedFixedProbSynapse(Behavior):
         # variance = self.p * (1 - self.p) * self.N
         sg.W = sg.matrix(mode=f"normal({mean},{self.variance})")
         sg.W[torch.rand_like(sg.W) > self.p] = 0
+        # Make the diagonal zero
+        if sg.src == sg.dst:
+            sg.W.fill_diagonal_(0)
+
         sg.I = sg.dst.vector()
 
     def forward(self, sg):
@@ -85,6 +91,9 @@ class RandomConnectedFixedInputSynapse(Behavior):
         mask = self.create_random_zero_mask(sg.W.shape, self.n)
         # Apply the mask to the matrix
         sg.W[mask] = 0
+        # Make the diagonal zero
+        if sg.src == sg.dst:
+            sg.W.fill_diagonal_(0)
 
         sg.I = sg.dst.vector()
 
