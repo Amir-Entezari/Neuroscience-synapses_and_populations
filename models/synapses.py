@@ -29,7 +29,7 @@ class FullyConnectedSynapse(Behavior):
         self.N = sg.src.size
 
         mean = self.j0 / self.N
-        sg.W = sg.matrix(mode=f"normal({mean},{mean * self.variance})")
+        sg.W = sg.matrix(mode=f"normal({mean},{abs(mean) * self.variance})")
         # Make the diagonal zero
         if sg.src == sg.dst:
             sg.W.fill_diagonal_(0)
@@ -56,7 +56,7 @@ class RandomConnectedFixedProbSynapse(Behavior):
 
         mean = self.j0 / (self.p * self.N)
         # variance = self.p * (1 - self.p) * self.N
-        sg.W = sg.matrix(mode=f"normal({mean},{mean * self.variance})")
+        sg.W = sg.matrix(mode=f"normal({mean},{abs(mean) * self.variance})")
         sg.W[torch.rand_like(sg.W) > self.p] = 0
         # Make the diagonal zero
         if sg.src == sg.dst:
@@ -84,7 +84,7 @@ class RandomConnectedFixedInputSynapse(Behavior):
         self.N = sg.src.size
 
         mean = self.j0 / self.n
-        sg.W = sg.matrix(mode=f"normal({mean},{mean * self.variance})")
+        sg.W = sg.matrix(mode=f"normal({mean},{abs(mean) * self.variance})")
 
         # Create a mask of which elements set to zero
         mask = self.create_random_zero_mask(sg.W.shape, self.n)
