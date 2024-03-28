@@ -26,7 +26,7 @@ class FullyConnectedSynapse(Behavior):
         self.j0 = self.parameter("j0", None, required=True)
         self.variance = self.parameter("variance", None, required=True)
 
-        self.N = sg.src.size + sg.dst.size
+        self.N = sg.src.size
 
         mean = self.j0 / self.N
         sg.W = sg.matrix(mode=f"normal({mean},{mean * self.variance})")
@@ -52,7 +52,7 @@ class RandomConnectedFixedProbSynapse(Behavior):
         self.variance = self.parameter("variance", None, required=True)
         self.p = self.parameter("p", None, required=True)
 
-        self.N = sg.src.size + sg.dst.size
+        self.N = sg.src.size
 
         mean = self.j0 / (self.p * self.N)
         # variance = self.p * (1 - self.p) * self.N
@@ -81,7 +81,7 @@ class RandomConnectedFixedInputSynapse(Behavior):
         self.variance = self.parameter("variance", None, required=True)
         self.n = self.parameter("n", None, required=True)
 
-        self.N = sg.src.size + sg.dst.size
+        self.N = sg.src.size
 
         mean = self.j0 / self.n
         sg.W = sg.matrix(mode=f"normal({mean},{mean * self.variance})")
