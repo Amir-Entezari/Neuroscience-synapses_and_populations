@@ -38,11 +38,12 @@ class NoisyCurrent(Behavior):
         self.seed = self.parameter("seed", None)
 
         ng.inp_I = ng.vector()
+        self.noise_current = self.add_noise(mean=self.mean,
+                                            std=self.std,
+                                            size=self.iterations)
 
     def forward(self, ng):
-        ng.inp_I = ng.vector(float(self.add_noise(mean=self.mean,
-                                                  std=self.std,
-                                                  size=self.iterations)[ng.network.iteration]))
+        ng.inp_I = ng.vector(float(self.noise_current[ng.network.iteration]))
 
     def add_noise(self, mean, std, size):
         if self.seed is not None:
