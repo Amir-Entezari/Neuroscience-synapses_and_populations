@@ -1,0 +1,233 @@
+from pymonntorch import *
+import torch
+import matplotlib.pyplot as plt
+
+
+class Simulation:
+    def __init__(self, net: Network = None):
+        self.net: Network
+        if net:
+            self.net = net
+        else:
+            self.net = Network()
+
+    def add_neuron_group(self, tag, **kwargs):
+        if tag in [ng.tag for ng in self.net.NeuronGroups]:
+            raise Exception("The neuron group's id already exist.")
+        # NeuronGroup(net=self.net, tag=tag, **kwargs)
+        return SimulateNeuronGroup(net=self.net, tag=tag, **kwargs)
+
+    def add_synapse_group(self, tag, **kwargs):
+        # if tag in [sg.tag for sg in self.net.SynapseGroups]:
+        #     raise Exception("The synapse group's id already exist.")
+        return CustomSynapseGroup(net=self.net, tag=tag, **kwargs)
+
+    def simulate(self, iterations=100):
+        self.net.initialize()
+        self.net.simulate_iterations(iterations=iterations)
+
+    def plot_membrane_potential(self, title: str,
+                                model_idx: int = 3,
+                                record_idx=4,
+                                save: bool = None,
+                                filename: str = None):
+        num_ng = len(self.net.NeuronGroups)
+        legend_position = (0, -0.2) if num_ng < 2 else (1.05, 1)
+        # Generate colors for each neuron
+        colors = plt.cm.jet(np.linspace(0, 1, num_ng))
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+        for i, ng in enumerate(self.net.NeuronGroups):
+            ax1.plot(ng.behavior[record_idx].variables["u"][:, :1], color=colors[i], label=f'{ng.tag} potential')
+            ax2.plot(ng.behavior[record_idx].variables["I"][:, :1], color=colors[i], label=f"{ng.tag} current")
+
+            ax1.axhline(y=ng.behavior[model_idx].init_kwargs['threshold'], color='red', linestyle='--',
+                        label=f'{ng.tag} Threshold')
+            ax1.axhline(y=ng.behavior[model_idx].init_kwargs['u_reset'], color='black', linestyle='--',
+                        label=f'{ng.tag} u_reset')
+
+        ax1.set_xlabel('Time')
+        ax1.set_ylabel('u(t)')
+        ax1.set_title(f'Membrane Potential')
+        ax1.legend(loc='upper left', bbox_to_anchor=legend_position, fontsize='small')
+
+        ax2.set_xlabel('Time')
+        ax2.set_ylabel("I(t)")
+        ax2.set_title('Current')
+        ax2.legend(loc='upper left', bbox_to_anchor=legend_position, fontsize='small')
+        fig.suptitle(title)
+        plt.tight_layout()
+        if save:
+            plt.savefig(filename or title + '.pdf')
+        plt.show()
+
+    def plot_w(self, title: str,
+               record_idx: int = 4,
+               save: bool = None,
+               filename: str = None):
+        num_ng = len(self.net.NeuronGroups)
+        legend_position = (0, -0.2) if num_ng < 2 else (1.05, 1)
+        # Generate colors for each neuron
+        colors = plt.cm.jet(np.linspace(0, 1, num_ng))
+        for i, ng in enumerate(self.net.NeuronGroups):
+            plt.plot(ng.behavior[record_idx].variables["w"][:, :1], color=colors[i], label=f'{ng.tag} adaptation')
+
+        plt.xlabel('Time')
+        plt.ylabel('w')
+        plt.legend(loc='upper left', bbox_to_anchor=legend_position, fontsize='small')
+
+        plt.title(title)
+        if save:
+            plt.savefig(filename or title + '.pdf')
+        plt.show()
+
+    def plot_IF_curve(self, title: str = None,
+                      label: str = None,
+                      event_idx=5,
+                      current_idx=2,
+                      show=True,
+                      save: bool = None,
+                      filename: str = None):
+        frequencies = []
+        currents = []
+        for i, ng in enumerate(self.net.NeuronGroups):
+            spike_events = ng.behavior[event_idx].variables['spike']
+            frequencies.append(len(spike_events) / (self.net.network.dt * self.net.iteration))
+            currents.append(ng.behavior[current_idx].init_kwargs['value'])
+        plt.plot(currents, frequencies, label=label)
+        plt.title(title)
+        plt.xlabel('Current (I)')
+        plt.ylabel('Frequency (f)')
+        plt.legend()
+        plt.grid(True)
+        if save:
+            plt.savefig(filename or title + '.pdf')
+        if show:
+            plt.show()
+        else:
+            return plt
+
+    def add_raster_plot(self,
+                        ax):
+        # Plot the raster plot
+        last_id = 0
+        for ng in self.net.NeuronGroups:
+            spike_events = self.net[f"{ng.tag}_event", 0].variables["spike"]
+            spike_times = spike_events[:, 0]
+            neuron_ids = spike_events[:, 1] + last_id
+            ax.scatter(spike_times, neuron_ids, s=5, label=f"{ng.tag}")
+            last_id = neuron_ids.max()
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Neuron ID')
+        ax.legend()
+        ax.set_title('Raster Plot for LIF model')
+
+    def add_activity_plot(self,
+                          ax,
+                          synapse_idx=4,
+                          print_params=True,
+                          text_x=0,
+                          text_y=0.5):
+        # Plot the activity
+        total_activity = torch.zeros(self.net.iteration)
+        for ng in self.net.NeuronGroups:
+            total_activity += self.net[f"{ng.tag}_rec", 0].variables["activity"]
+        ax.plot(total_activity)
+        ax.set_xlabel('Time')
+        ax.set_ylabel('activity')
+        ax.legend()
+        ax.set_title('Activity of total network')
+
+        params_info = f"Synapses parameters:\n"
+        for sg in self.net.SynapseGroups:
+            params_info += f"Synapse {sg.tag} params:{sg.behavior[synapse_idx].init_kwargs}\n"
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5), fontsize=8)
+
+
+class SimulateNeuronGroup(NeuronGroup):
+    def add_current_plot(self, ax, current_idx, text_x=0.0, text_y=0.05):
+        # Plot the current
+        ax.plot(self.network[f"{self.tag}_rec", 0].variables["I"][:, :])
+        ax.plot(self.network[f"{self.tag}_rec", 0].variables["inp_I"][:, :].mean(axis=1),
+                label="input current",
+                color='black')
+        ax.set_xlabel('t')
+        ax.set_ylabel('I(t)')
+        ax.legend()
+        ax.set_title('Current')
+
+        params_info = f"""{self.behavior[current_idx].__class__.__name__} params: {self.behavior[current_idx].init_kwargs}"""
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
+
+    def add_raster_plot(self,
+                        ax):
+        # Plot the raster plot
+        spike_events = self.network[f"{self.tag}_event", 0].variables["spike"]
+        spike_times = spike_events[:, 0]
+        neuron_ids = spike_events[:, 1]
+        ax.scatter(spike_times, neuron_ids, s=5, label=f"{self.tag}")
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Neuron ID')
+        ax.legend()
+        ax.set_title('Raster Plot for LIF model')
+
+    def add_activity_plot(self,
+                          ax):
+        # Plot the activity
+        ax.plot(self.network[f"{self.tag}_rec", 0].variables["activity"])
+        ax.set_xlabel('Time')
+        ax.set_ylabel('activity')
+        ax.legend()
+        ax.set_title('Activity')
+
+    def add_membrane_potential_plot(self,
+                                    ax,
+                                    model_idx: int = 3,
+                                    record_idx=4,
+                                    text_x=0.0,
+                                    text_y=0.05
+                                    ):
+        ax.plot(self.network[f"{self.tag}_rec", 0].variables["u"][:, :])
+
+        ax.axhline(y=self.behavior[model_idx].init_kwargs['threshold'], color='red', linestyle='--',
+                   label=f'{self.tag} Threshold')
+        ax.axhline(y=self.behavior[model_idx].init_kwargs['u_reset'], color='black', linestyle='--',
+                   label=f'{self.tag} u_reset')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('u(t)')
+        ax.set_title(f'Membrane Potential')
+        ax.legend()
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel("I(t)")
+        ax.set_title('Current')
+        ax.legend()
+
+        params_info = f"{self.behavior[model_idx].__class__.__name__} params:\n"
+        for key, value in self.behavior[model_idx].init_kwargs.items():
+            params_info += f"{key}: {value}\n"
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
+
+    def plot_w(self, title: str,
+               record_idx: int = 4,
+               save: bool = None,
+               filename: str = None):
+        # Generate colors for each neuron
+        plt.plot(self.behavior[record_idx].variables["w"][:, :1], label=f'adaptation')
+
+        plt.xlabel('Time')
+        plt.ylabel('w')
+        plt.legend(loc='upper left', fontsize='small')
+
+        plt.title(title)
+        if save:
+            plt.savefig(filename or title + '.pdf')
+        plt.show()
+
+    def add_parameter_info(self, ax, model_idx):
+        params_info = f"""{self.tag}: {self.behavior[model_idx].init_kwargs}"""
+        ax.text(0.1, 0.5, params_info, bbox=dict(facecolor='white', alpha=0.5))
+
+
+class CustomSynapseGroup(SynapseGroup):
+    pass
