@@ -1,5 +1,6 @@
 from pymonntorch import Behavior
 
+
 class ActivityRecorder(Behavior):
     def initialize(self, ng):
         ng.activity = 0
