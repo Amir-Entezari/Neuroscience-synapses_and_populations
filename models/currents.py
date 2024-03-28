@@ -3,25 +3,30 @@ from pymonntorch import *
 
 class SetCurrent(Behavior):
     def initialize(self, ng):
-        self.offset = self.parameter("value")
+        self.offset = self.parameter("value", 0.0)
         ng.I = ng.vector(mode=self.offset)
 
     def forward(self, ng):
         ng.I.fill_(self.offset)
 
 
+class CurrentSum(Behavior):
+    def forward(self, ng):
+        ng.I += ng.inp_I  # Or add other currents
+
+
 class ConstantCurrent(Behavior):
     def initialize(self, ng):
         self.value = self.parameter("value", None, required=True)
         self.noise_range = self.parameter("noise_range", 0.0)
-        ng.I = ng.vector(self.value)
+        ng.inp_I = ng.vector(self.value)
 
     def forward(self, ng):
-        ng.I = ng.vector(self.value)
+        ng.inp_I = ng.vector(self.value)
         self.add_noise(ng)
 
     def add_noise(self, ng):
-        ng.I += (ng.vector("uniform") - 0.5) * self.noise_range
+        ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
 
 
 class NoisyCurrent(Behavior):
@@ -32,12 +37,12 @@ class NoisyCurrent(Behavior):
         self.std = self.parameter("std", 0.0)
         self.seed = self.parameter("seed", None)
 
-        ng.I = ng.vector()
+        ng.inp_I = ng.vector()
 
     def forward(self, ng):
-        ng.I = ng.vector(float(self.add_noise(mean=self.mean,
-                                              std=self.std,
-                                              size=self.iterations)[ng.network.iteration]))
+        ng.inp_I = ng.vector(float(self.add_noise(mean=self.mean,
+                                                  std=self.std,
+                                                  size=self.iterations)[ng.network.iteration]))
 
     def add_noise(self, mean, std, size):
         if self.seed is not None:
@@ -77,8 +82,7 @@ class StepFunction(Behavior):
         self.value = self.parameter("value")
         self.t0 = self.parameter("t0")
 
-        ng.I = ng.vector()
-
+        ng.inp_I = ng.vector()
 
 def forward(self, ng):
     if ng.network.iteration * ng.network.dt >= self.t0:
