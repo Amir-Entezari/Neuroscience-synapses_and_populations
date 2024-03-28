@@ -89,3 +89,21 @@ class StepFunction(Behavior):
         if ng.network.iteration * ng.network.dt >= self.t0:
             ng.inp_I += ng.vector(mode=self.value) * ng.network.dt
 
+
+class SinCurrent(Behavior):
+    def initialize(self, ng):
+        self.amplitude = self.parameter("amplitude", None, required=True)
+        self.frequency = self.parameter("frequency", None, required=True)
+        self.phase = self.parameter("phase", 0.0)
+        self.offset = self.parameter("offset", 0.0)
+        self.noise_range = self.parameter("noise_range", 0.0)
+
+        ng.inp_I = ng.vector()
+
+    def forward(self, ng):
+        t = ng.network.iteration * ng.network.dt
+        ng.inp_I = torch.sin(ng.vector(self.frequency * t) + self.phase) * self.amplitude + self.offset
+        self.add_noise(ng)
+
+    def add_noise(self, ng):
+        ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
