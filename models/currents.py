@@ -84,6 +84,7 @@ class StepFunction(Behavior):
 
         ng.inp_I = ng.vector()
 
-def forward(self, ng):
-    if ng.network.iteration * ng.network.dt >= self.t0:
-        ng.I += ng.vector(mode=self.value) * ng.network.dt
+    def forward(self, ng):
+        if ng.network.iteration * ng.network.dt >= self.t0:
+            ng.inp_I += ng.vector(mode=self.value) * ng.network.dt
+
