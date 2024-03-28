@@ -51,6 +51,7 @@ class RandomConnectedFixedProbSynapse(Behavior):
         self.j0 = self.parameter("j0", None, required=True)
         self.variance = self.parameter("variance", None, required=True)
         self.p = self.parameter("p", None, required=True)
+        self.alpha = self.parameter("alpha", 1.0)
 
         self.N = sg.src.size
 
@@ -66,7 +67,8 @@ class RandomConnectedFixedProbSynapse(Behavior):
 
     def forward(self, sg):
         pre_spike = sg.src.spike
-        sg.I = torch.sum(sg.W[pre_spike], axis=0)
+        # sg.I = torch.sum(sg.W[pre_spike], axis=0)
+        sg.I += torch.sum(sg.W[pre_spike], axis=0) - sg.I * self.alpha
 
 
 class RandomConnectedFixedInputSynapse(Behavior):
