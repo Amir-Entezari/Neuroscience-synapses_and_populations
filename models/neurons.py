@@ -17,6 +17,7 @@ class LIF(Behavior):
         self.threshold = self.parameter("threshold", None, required=True)
         self.refractory_T = self.parameter("refractory_T", 0) / ng.network.dt
 
+        self.threshold = ng.vector(mode=self.threshold)
         # initial value of u in neurons
         ng.u = ng.vector(mode=self.u_init)
         ng.u += self.u_reset
