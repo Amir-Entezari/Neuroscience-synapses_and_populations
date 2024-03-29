@@ -139,14 +139,26 @@ class Simulation:
         ax.legend()
         ax.set_title('Activity of total network')
 
+    def add_synapses_params_info(self, ax, synapse_idx=4, text_x=0.0, text_y=0.5):
         params_info = f"Synapses parameters:\n"
         for sg in self.net.SynapseGroups:
             params_info += f"Synapse {sg.tag} params:{sg.behavior[synapse_idx].init_kwargs}\n"
-        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5), fontsize=8)
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5),
+                fontsize=8)
 
 
 class SimulateNeuronGroup(NeuronGroup):
-    def add_current_plot(self, ax, current_idx, text_x=0.0, text_y=0.05):
+    def add_current_params_info(self, ax, current_idx, text_x=0.0, text_y=0.05):
+        params_info = f"""{self.behavior[current_idx].__class__.__name__} params: {self.behavior[current_idx].init_kwargs}"""
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
+
+    def add_neuron_model_params_info(self, ax, model_idx, text_x=0.0, text_y=0.05):
+        params_info = f"{self.behavior[model_idx].__class__.__name__} params:\n"
+        for key, value in self.behavior[model_idx].init_kwargs.items():
+            params_info += f"{key}: {value}\n"
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
+
+    def add_current_plot(self, ax):
         # Plot the current
         ax.plot(self.network[f"{self.tag}_rec", 0].variables["I"][:, :])
         ax.plot(self.network[f"{self.tag}_rec", 0].variables["inp_I"][:, :].mean(axis=1),
@@ -182,14 +194,11 @@ class SimulateNeuronGroup(NeuronGroup):
     def add_membrane_potential_plot(self,
                                     ax,
                                     model_idx: int = 3,
-                                    record_idx=4,
-                                    text_x=0.0,
-                                    text_y=0.05
                                     ):
         ax.plot(self.network[f"{self.tag}_rec", 0].variables["u"][:, :])
 
-        ax.axhline(y=self.behavior[model_idx].init_kwargs['threshold'], color='red', linestyle='--',
-                   label=f'{self.tag} Threshold')
+        # ax.axhline(y=self.behavior[model_idx].init_kwargs['threshold'], color='red', linestyle='--',
+        #            label=f'{self.tag} Threshold')
         ax.axhline(y=self.behavior[model_idx].init_kwargs['u_reset'], color='black', linestyle='--',
                    label=f'{self.tag} u_reset')
 
@@ -197,16 +206,6 @@ class SimulateNeuronGroup(NeuronGroup):
         ax.set_ylabel('u(t)')
         ax.set_title(f'Membrane Potential')
         ax.legend()
-
-        ax.set_xlabel('Time')
-        ax.set_ylabel("I(t)")
-        ax.set_title('Current')
-        ax.legend()
-
-        params_info = f"{self.behavior[model_idx].__class__.__name__} params:\n"
-        for key, value in self.behavior[model_idx].init_kwargs.items():
-            params_info += f"{key}: {value}\n"
-        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
 
     def plot_w(self, title: str,
                record_idx: int = 4,
@@ -223,10 +222,6 @@ class SimulateNeuronGroup(NeuronGroup):
         if save:
             plt.savefig(filename or title + '.pdf')
         plt.show()
-
-    def add_parameter_info(self, ax, model_idx):
-        params_info = f"""{self.tag}: {self.behavior[model_idx].init_kwargs}"""
-        ax.text(0.1, 0.5, params_info, bbox=dict(facecolor='white', alpha=0.5))
 
 
 class CustomSynapseGroup(SynapseGroup):
