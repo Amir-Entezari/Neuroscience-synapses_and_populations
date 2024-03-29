@@ -121,7 +121,7 @@ class Simulation:
         ax.set_xlabel('Time')
         ax.set_ylabel('Neuron ID')
         ax.legend()
-        ax.set_title('Raster Plot for LIF model')
+        ax.set_title('Raster Plot')
 
     def add_activity_plot(self,
                           ax,
@@ -168,7 +168,7 @@ class SimulateNeuronGroup(NeuronGroup):
         ax.set_xlabel('Time')
         ax.set_ylabel('Neuron ID')
         ax.legend()
-        ax.set_title('Raster Plot for LIF model')
+        ax.set_title('Raster Plot')
 
     def add_activity_plot(self,
                           ax):
