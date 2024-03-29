@@ -5,6 +5,7 @@ class SetCurrent(Behavior):
     def initialize(self, ng):
         self.offset = self.parameter("value", 0.0)
         ng.I = ng.vector(mode=self.offset)
+        # ng.Inp_I = ng.vector(mode=self.offset)
 
     def forward(self, ng):
         ng.I.fill_(self.offset)
@@ -78,16 +79,27 @@ class NoisyCurrent(Behavior):
         return scaled_brownian_noise
 
 
-class StepFunction(Behavior):
+class StepCurrent(Behavior):
     def initialize(self, ng):
-        self.value = self.parameter("value")
-        self.t0 = self.parameter("t0")
+        self.value = self.parameter("value", None, required=True)
+        self.t_start = self.parameter("t_start", required=True)
+        self.t_end = self.parameter("t_end", None)
+        self.noise_range = self.parameter("noise_range", 0.0)
 
         ng.inp_I = ng.vector()
 
     def forward(self, ng):
-        if ng.network.iteration * ng.network.dt >= self.t0:
-            ng.inp_I += ng.vector(mode=self.value) * ng.network.dt
+        ng.inp_I = ng.vector(0.0)
+        if ng.network.iteration * ng.network.dt >= self.t_start:
+            ng.inp_I = ng.vector(mode=self.value)
+            if self.t_end:
+                if ng.network.iteration * ng.network.dt >= self.t_end:
+                    ng.inp_I = ng.vector(0.0)
+
+        self.add_noise(ng)
+
+    def add_noise(self, ng):
+        ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
 
 
 class SinCurrent(Behavior):
