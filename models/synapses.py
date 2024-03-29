@@ -25,6 +25,7 @@ class FullyConnectedSynapse(Behavior):
     def initialize(self, sg):
         self.j0 = self.parameter("j0", None, required=True)
         self.variance = self.parameter("variance", None, required=True)
+        self.alpha = self.parameter("alpha", 1.0)
 
         self.N = sg.src.size
 
@@ -37,7 +38,8 @@ class FullyConnectedSynapse(Behavior):
 
     def forward(self, sg):
         pre_spike = sg.src.spike
-        sg.I = torch.sum(sg.W[pre_spike], axis=0)
+        # sg.I = torch.sum(sg.W[pre_spike], axis=0)
+        sg.I += torch.sum(sg.W[pre_spike], axis=0) - sg.I * self.alpha
 
 
 class RandomConnectedFixedProbSynapse(Behavior):
@@ -82,6 +84,7 @@ class RandomConnectedFixedInputSynapse(Behavior):
         self.j0 = self.parameter("j0", None, required=True)
         self.variance = self.parameter("variance", None, required=True)
         self.n = self.parameter("n", None, required=True)
+        self.alpha = self.parameter("alpha", 1.0)
 
         self.N = sg.src.size
 
@@ -100,7 +103,8 @@ class RandomConnectedFixedInputSynapse(Behavior):
 
     def forward(self, sg):
         pre_spike = sg.src.spike
-        sg.I = torch.sum(sg.W[pre_spike], axis=0)
+        # sg.I = torch.sum(sg.W[pre_spike], axis=0)
+        sg.I += torch.sum(sg.W[pre_spike], axis=0) - sg.I * self.alpha
 
     def create_random_zero_mask(self, shape, n):
         mask = torch.full(shape, True, dtype=torch.bool)
