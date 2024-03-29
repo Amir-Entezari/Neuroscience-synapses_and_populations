@@ -15,7 +15,7 @@ class Simulation:
         if tag in [ng.tag for ng in self.net.NeuronGroups]:
             raise Exception("The neuron group's id already exist.")
         # NeuronGroup(net=self.net, tag=tag, **kwargs)
-        return SimulateNeuronGroup(net=self.net, tag=tag, **kwargs)
+        return CustomNeuronGroup(net=self.net, tag=tag, **kwargs)
 
     def add_synapse_group(self, tag, **kwargs):
         # if tag in [sg.tag for sg in self.net.SynapseGroups]:
@@ -147,7 +147,7 @@ class Simulation:
                 fontsize=8)
 
 
-class SimulateNeuronGroup(NeuronGroup):
+class CustomNeuronGroup(NeuronGroup):
     def add_current_params_info(self, ax, current_idx, text_x=0.0, text_y=0.05):
         params_info = f"""{self.behavior[current_idx].__class__.__name__} params: {self.behavior[current_idx].init_kwargs}"""
         ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
