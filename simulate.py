@@ -107,15 +107,17 @@ class Simulation:
             return plt
 
     def add_raster_plot(self,
-                        ax):
+                        ax,
+                        s=5):
         # Plot the raster plot
         last_id = 0
         for ng in self.net.NeuronGroups:
             spike_events = self.net[f"{ng.tag}_event", 0].variables["spike"]
             spike_times = spike_events[:, 0]
             neuron_ids = spike_events[:, 1] + last_id
-            ax.scatter(spike_times, neuron_ids, s=5, label=f"{ng.tag}")
-            last_id = neuron_ids.max()
+            ax.scatter(spike_times, neuron_ids, s=s, label=f"{ng.tag}")
+            if neuron_ids.size():
+                last_id = neuron_ids.max()
         ax.set_xlabel('Time')
         ax.set_ylabel('Neuron ID')
         ax.legend()
@@ -155,16 +157,14 @@ class SimulateNeuronGroup(NeuronGroup):
         ax.legend()
         ax.set_title('Current')
 
-        params_info = f"""{self.behavior[current_idx].__class__.__name__} params: {self.behavior[current_idx].init_kwargs}"""
-        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
-
     def add_raster_plot(self,
-                        ax):
+                        ax,
+                        s=5):
         # Plot the raster plot
         spike_events = self.network[f"{self.tag}_event", 0].variables["spike"]
         spike_times = spike_events[:, 0]
         neuron_ids = spike_events[:, 1]
-        ax.scatter(spike_times, neuron_ids, s=5, label=f"{self.tag}")
+        ax.scatter(spike_times, neuron_ids, s=s, label=f"{self.tag}")
         ax.set_xlabel('Time')
         ax.set_ylabel('Neuron ID')
         ax.legend()
