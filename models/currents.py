@@ -28,7 +28,33 @@ class ConstantCurrent(Behavior):
         self.add_noise(ng)
 
     def add_noise(self, ng):
-        ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
+        # ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
+        ng.inp_I += (ng.vector("normal(0,1)")) * self.noise_range
+
+
+class StepCurrent(Behavior):
+    def initialize(self, ng):
+        self.offset = self.parameter("offset", 0.0, required=True)
+        self.value = self.parameter("value", None, required=True)
+        self.t_start = self.parameter("t_start", 0.0, required=True)
+        self.t_end = self.parameter("t_end", None)
+        self.noise_range = self.parameter("noise_range", 0.0)
+
+        ng.inp_I = ng.vector()
+
+    def forward(self, ng):
+        ng.inp_I = ng.vector(self.offset)
+        if ng.network.iteration * ng.network.dt >= self.t_start:
+            ng.inp_I = ng.vector(mode=self.offset + self.value)
+            if self.t_end:
+                if ng.network.iteration * ng.network.dt >= self.t_end:
+                    ng.inp_I = ng.vector(0.0)
+
+        self.add_noise(ng)
+
+    def add_noise(self, ng):
+        # ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
+        ng.inp_I += (ng.vector("normal(0,1)")) * self.noise_range
 
 
 class NoisyCurrent(Behavior):
@@ -80,29 +106,6 @@ class NoisyCurrent(Behavior):
         return scaled_brownian_noise
 
 
-class StepCurrent(Behavior):
-    def initialize(self, ng):
-        self.value = self.parameter("value", None, required=True)
-        self.t_start = self.parameter("t_start", required=True)
-        self.t_end = self.parameter("t_end", None)
-        self.noise_range = self.parameter("noise_range", 0.0)
-
-        ng.inp_I = ng.vector()
-
-    def forward(self, ng):
-        ng.inp_I = ng.vector(0.0)
-        if ng.network.iteration * ng.network.dt >= self.t_start:
-            ng.inp_I = ng.vector(mode=self.value)
-            if self.t_end:
-                if ng.network.iteration * ng.network.dt >= self.t_end:
-                    ng.inp_I = ng.vector(0.0)
-
-        self.add_noise(ng)
-
-    def add_noise(self, ng):
-        ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
-
-
 class SinCurrent(Behavior):
     def initialize(self, ng):
         self.amplitude = self.parameter("amplitude", None, required=True)
@@ -119,4 +122,20 @@ class SinCurrent(Behavior):
         self.add_noise(ng)
 
     def add_noise(self, ng):
-        ng.inp_I += (ng.vector("uniform") - 0.5) * self.noise_range
+        ng.inp_I += (ng.vector("normal(0,1)") - 0.5) * self.noise_range
+
+
+class RandomCurrent(Behavior):
+    def initialize(self, ng):
+        self.init_I = self.parameter("initial_current", None)
+        self.upper_bound = self.parameter("upper_bound", 10.0)
+        self.noise_range = self.parameter("noise_range", 0.0)
+        self.step = self.parameter("step", 0.5)
+
+        ng.inp_I = ng.vector("uniform") * self.upper_bound
+        if self.init_I is not None:
+            ng.inp_I = ng.vector(self.init_I / 100) * self.upper_bound / 2
+
+    def forward(self, ng):
+        rand_I = (ng.vector("uniform") - (ng.inp_I / self.upper_bound)) * self.step
+        ng.inp_I += rand_I + (ng.vector("normal(-0,0.5)")) * self.noise_range
