@@ -161,9 +161,11 @@ class CustomNeuronGroup(NeuronGroup):
     def add_current_plot(self, ax):
         # Plot the current
         ax.plot(self.network[f"{self.tag}_rec", 0].variables["I"][:, :])
-        ax.plot(self.network[f"{self.tag}_rec", 0].variables["inp_I"][:, :].mean(axis=1),
+        ax.plot([],[], label="Other colors: Received I for each neuron")
+        ax.plot(self.network[f"{self.tag}_rec", 0].variables["inp_I"][:, :1],
                 label="input current",
                 color='black')
+
         ax.set_xlabel('t')
         ax.set_ylabel('I(t)')
         ax.legend()
