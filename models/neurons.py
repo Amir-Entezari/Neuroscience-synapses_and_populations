@@ -14,6 +14,7 @@ class LIF(Behavior):
         self.u_init = self.parameter("u_init", default="normal(0.0, 0.0)")
         self.u_rest = self.parameter("u_rest", None, required=True)
         self.u_reset = self.parameter("u_reset", None, required=True)
+        self.u_init = self.parameter("u_init", f"normal({self.u_reset},0)", required=True)
         self.threshold = self.parameter("threshold", None, required=True)
         self.refractory_T = self.parameter("refractory_T", 0) / ng.network.dt
 
