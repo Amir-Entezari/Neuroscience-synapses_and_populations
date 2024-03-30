@@ -127,15 +127,15 @@ class SinCurrent(Behavior):
 
 class RandomCurrent(Behavior):
     def initialize(self, ng):
-        self.init_I = self.parameter("initial_current", None)
-        self.upper_bound = self.parameter("upper_bound", 10.0)
+        self.init_I = self.parameter("init_I", None)
+        self.mean = self.parameter("mean", 10.0)
+        self.std = self.parameter("std", 0.5)
         self.noise_range = self.parameter("noise_range", 0.0)
-        self.step = self.parameter("step", 0.5)
 
-        ng.inp_I = ng.vector("uniform") * self.upper_bound
+        ng.inp_I = ng.vector("uniform") * self.mean * 2
         if self.init_I is not None:
-            ng.inp_I = ng.vector(self.init_I / 100) * self.upper_bound / 2
+            ng.inp_I = ng.vector(self.init_I / 100) * self.mean
 
     def forward(self, ng):
-        rand_I = (ng.vector("uniform") - (ng.inp_I / self.upper_bound)) * self.step
+        rand_I = (ng.vector("uniform") - (ng.inp_I / (self.mean * 2))) * self.std
         ng.inp_I += rand_I + (ng.vector("normal(-0,0.5)")) * self.noise_range
