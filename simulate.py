@@ -116,7 +116,7 @@ class Simulation:
             spike_times = spike_events[:, 0]
             neuron_ids = spike_events[:, 1] + last_id
             ax.scatter(spike_times, neuron_ids, s=s, label=f"{ng.tag}")
-            if neuron_ids.size():
+            if neuron_ids.count_nonzero():
                 last_id = neuron_ids.max()
         ax.set_xlabel('Time')
         ax.set_ylabel('Neuron ID')
