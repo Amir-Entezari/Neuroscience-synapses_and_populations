@@ -3,12 +3,13 @@ from pymonntorch import *
 
 class SetCurrent(Behavior):
     def initialize(self, ng):
-        self.offset = self.parameter("value", 0.0)
+        self.offset = self.parameter("offset", 0.0)
         ng.I = ng.vector(mode=self.offset)
         # ng.Inp_I = ng.vector(mode=self.offset)
 
     def forward(self, ng):
-        ng.I.fill_(self.offset)
+        ng.I = ng.vector(mode=self.offset)
+        # ng.I.fill_(self.offset)
 
 
 class CurrentSum(Behavior):
