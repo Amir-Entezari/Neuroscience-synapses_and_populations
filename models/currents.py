@@ -36,7 +36,7 @@ class NoisyCurrent(Behavior):
         self.iterations = self.parameter("iterations", None, required=True)
         self.noise_type = self.parameter("noise_type", "white")
         self.mean = self.parameter("mean", 0.0)
-        self.std = self.parameter("std", 0.0)
+        self.std = self.parameter("std", 1.0)
         self.seed = self.parameter("seed", None)
 
         ng.inp_I = ng.vector()
