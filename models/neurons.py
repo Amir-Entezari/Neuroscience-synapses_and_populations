@@ -11,17 +11,20 @@ class LIF(Behavior):
         # initial parameters in LIF model
         self.R = self.parameter("R", None, required=True)
         self.tau = self.parameter("tau", None, required=True)
-        self.u_init = self.parameter("u_init", default="normal(0.0, 0.0)")
         self.u_rest = self.parameter("u_rest", None, required=True)
         self.u_reset = self.parameter("u_reset", None, required=True)
         self.u_init = self.parameter("u_init", f"normal({self.u_reset},0)", required=True)
         self.threshold = self.parameter("threshold", None, required=True)
         self.refractory_T = self.parameter("refractory_T", 0) / ng.network.dt
 
+        # Set parameters
+        # self.R = ng.vector(mode=self.R)
+        # self.tau = ng.vector(mode=self.tau)
         self.threshold = ng.vector(mode=self.threshold)
+
         # initial value of u in neurons
+        # ng.u = (ng.vector("uniform") - 0.5) * 10 + self.u_rest
         ng.u = ng.vector(mode=self.u_init)
-        ng.u += self.u_reset
         ng.spike = ng.u > self.threshold
         ng.u[ng.spike] = self.u_reset
 
