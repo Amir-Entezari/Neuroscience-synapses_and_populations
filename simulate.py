@@ -227,4 +227,17 @@ class CustomNeuronGroup(NeuronGroup):
 
 
 class CustomSynapseGroup(SynapseGroup):
-    pass
+    def add_current_plot(self, ax):
+        # Plot the current
+        ax.plot(self.network[f"{self.tag}_rec", 0].variables["I"][:, :])
+
+        ax.set_xlabel('t')
+        ax.set_ylabel('I(t)')
+        ax.legend()
+        ax.set_title('Synapse Current')
+
+    def add_synapses_params_info(self, ax, synapse_idx=4, text_x=0.0, text_y=0.5):
+        params_info = f"Synapses parameters:\n"
+        params_info += f"Synapse {self.tag} params:{self.behavior[synapse_idx].init_kwargs}\n"
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5),
+                fontsize=8)
