@@ -165,7 +165,7 @@ class CustomNeuronGroup(NeuronGroup):
         params_info = f"{self.behavior[model_idx].__class__.__name__} params:\n"
         for key, value in self.behavior[model_idx].init_kwargs.items():
             params_info += f"{key}: {value}\n"
-        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5))
+        ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.4))
 
     def add_current_plot(self, ax):
         # Plot the current
