@@ -120,8 +120,8 @@ class Simulation:
                 last_id = neuron_ids.max()
         ax.set_xlabel('Time')
         ax.set_ylabel('Neuron ID')
-        ax.legend()
-        ax.set_title('Raster Plot')
+        ax.legend(loc='upper right')
+        ax.set_title('Raster Plot of total network')
 
     def add_activity_plot(self,
                           ax,
