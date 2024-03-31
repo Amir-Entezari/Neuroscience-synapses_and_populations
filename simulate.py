@@ -131,9 +131,12 @@ class Simulation:
                           text_y=0.5):
         # Plot the activity
         total_activity = torch.zeros(self.net.iteration)
+        total_size = 0
         for ng in self.net.NeuronGroups:
-            total_activity += self.net[f"{ng.tag}_rec", 0].variables["activity"]
-        ax.plot(total_activity)
+            # ax.plot(self.net[f"{ng.tag}_rec", 0].variables["activity"], label=f"{ng.tag}")
+            total_activity += self.net[f"{ng.tag}_rec", 0].variables["activity"] * ng.size
+            total_size += ng.size
+        ax.plot(total_activity / total_size, label="total activity")
         ax.set_xlabel('Time')
         ax.set_ylabel('activity')
         ax.legend()
