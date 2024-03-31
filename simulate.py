@@ -218,6 +218,15 @@ class CustomNeuronGroup(NeuronGroup):
         ax.set_title(f'Membrane Potential {self.tag}')
         ax.legend()
 
+    def add_membrane_potential_distribution(self, ax):
+        rotated_matrix = np.transpose(self.network[f"{self.tag}_rec", 0].variables["u"])
+        # Plotting the rotated heatmap
+        ax.imshow(rotated_matrix, aspect='auto', cmap='jet', origin='lower')
+        # ax.colorbar(label='Membrane Potential')
+        ax.set_ylabel('Neurons')
+        ax.set_xlabel('Time (Iterations)')
+        ax.set_title('Membrane Potentials Heatmap Distribution Over Time')
+
     def plot_w(self, title: str,
                record_idx: int = 4,
                save: bool = None,
