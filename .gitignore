@@ -42,3 +42,8 @@
 *.synctex.gz
 *.synctex.gz(busy)
 *.pdfsync
+
+## plots
+/report/plots/
+
+*.zip
