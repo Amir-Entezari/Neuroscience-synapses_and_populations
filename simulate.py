@@ -170,7 +170,7 @@ class CustomNeuronGroup(NeuronGroup):
     def add_current_plot(self, ax):
         # Plot the current
         ax.plot(self.network[f"{self.tag}_rec", 0].variables["I"][:, :])
-        ax.plot([],[], label="Other colors: Received I for each neuron")
+        ax.plot([], [], label="Other colors: Received I for each neuron")
         ax.plot(self.network[f"{self.tag}_rec", 0].variables["inp_I"][:, :1],
                 label="input current",
                 color='black')
@@ -178,7 +178,7 @@ class CustomNeuronGroup(NeuronGroup):
         ax.set_xlabel('t')
         ax.set_ylabel('I(t)')
         ax.legend()
-        ax.set_title('Current')
+        ax.set_title(f'Current: {self.tag}')
 
     def add_raster_plot(self,
                         ax,
@@ -190,8 +190,8 @@ class CustomNeuronGroup(NeuronGroup):
         ax.scatter(spike_times, neuron_ids, s=s, label=f"{self.tag}")
         ax.set_xlabel('Time')
         ax.set_ylabel('Neuron ID')
-        ax.legend()
-        ax.set_title('Raster Plot')
+        ax.legend(loc='upper right')
+        ax.set_title(f'Raster Plot: {self.tag}')
 
     def add_activity_plot(self,
                           ax):
@@ -200,7 +200,7 @@ class CustomNeuronGroup(NeuronGroup):
         ax.set_xlabel('Time')
         ax.set_ylabel('activity')
         ax.legend()
-        ax.set_title('Activity')
+        ax.set_title(f'Activity {self.tag}')
 
     def add_membrane_potential_plot(self,
                                     ax,
@@ -215,7 +215,7 @@ class CustomNeuronGroup(NeuronGroup):
 
         ax.set_xlabel('Time')
         ax.set_ylabel('u(t)')
-        ax.set_title(f'Membrane Potential')
+        ax.set_title(f'Membrane Potential {self.tag}')
         ax.legend()
 
     def plot_w(self, title: str,
