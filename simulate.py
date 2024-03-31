@@ -149,6 +149,12 @@ class Simulation:
         ax.text(text_x, text_y, params_info, transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.5),
                 fontsize=8)
 
+    def get_synapses_params_info(self, synapse_idx=4):
+        params_info = f"Synapses parameters:\n"
+        for sg in self.net.SynapseGroups:
+            params_info += f"Synapse {sg.tag} params:{sg.behavior[synapse_idx].init_kwargs}\n"
+        return params_info
+
 
 class CustomNeuronGroup(NeuronGroup):
     def add_current_params_info(self, ax, current_idx, text_x=0.0, text_y=0.05):
