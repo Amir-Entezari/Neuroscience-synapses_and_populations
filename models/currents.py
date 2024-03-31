@@ -133,8 +133,9 @@ class RandomCurrent(Behavior):
         self.noise_range = self.parameter("noise_range", 0.0)
 
         ng.inp_I = ng.vector("uniform") * self.mean * 2
+        # ng.inp_I = ng.vector(f"normal({self.mean}, {self.std})")
         if self.init_I is not None:
-            ng.inp_I = ng.vector(self.init_I / 100) * self.mean
+            ng.inp_I = ng.vector(self.init_I)
 
     def forward(self, ng):
         rand_I = (ng.vector("uniform") - (ng.inp_I / (self.mean * 2))) * self.std
